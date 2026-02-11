@@ -24,6 +24,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.material.icons.filled.*
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -46,11 +48,21 @@ fun Register(
     navController: NavController,
     windowRegisterViewModel: WindowRegisterViewModel = viewModel()
 ) {
+    val passwordError by windowRegisterViewModel.passwordError.collectAsState()
+    val emailError by windowRegisterViewModel.emailError.collectAsState()
     val email by windowRegisterViewModel.email.collectAsState()
+    val nameError by windowRegisterViewModel.nameError.collectAsState()
+    val surnameError by windowRegisterViewModel.surnameError.collectAsState()
     val name by windowRegisterViewModel.name.collectAsState()
     val surname by windowRegisterViewModel.surname.collectAsState()
     val password by windowRegisterViewModel.password.collectAsState()
     val passwordVisible by windowRegisterViewModel.passwordVisible.collectAsState()
+    val buttonEnabled by remember {
+        derivedStateOf {
+            emailError == null && nameError == null && surnameError == null && passwordError == null &&
+                    email.isNotBlank() && name.isNotBlank() && surname.isNotBlank() && password.isNotBlank()
+        }
+    }
     Scaffold { innerPadding ->
         Column(
             modifier = Modifier
@@ -70,80 +82,118 @@ fun Register(
                 color = MaterialTheme.colorScheme.onBackground,
                 modifier = Modifier.padding(bottom = 16.dp)
             )
-            TextField(
-                value = email,
-                onValueChange = { windowRegisterViewModel.setEmail(it) },
-                label = { Text("Correo electrónico", color = Color.DarkGray) },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(
-                        Color.DarkGray,
-                        shape = RoundedCornerShape(8.dp)
-                    ),
-                textStyle = TextStyle(color = Color.DarkGray),
-                singleLine = true
-            )
-
-            Spacer(modifier = Modifier.height(12.dp))
-
-            TextField(
-                value = password,
-                onValueChange = { windowRegisterViewModel.setPassword(it) },
-                label = { Text("Contraseña", color = Color.DarkGray) },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(
-                        Color.DarkGray,
-                        shape = RoundedCornerShape(8.dp)
-                    ),
-                textStyle = TextStyle(color = Color.DarkGray),
-                visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
-
-                trailingIcon = {
-                    val image =
-                        if (passwordVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff
-
-                    IconButton(onClick = { windowRegisterViewModel.togglePasswordVisibility() }) {
-                        Icon(imageVector = image, contentDescription = null)
-                    }
+            Column {
+                TextField(
+                    value = email,
+                    onValueChange = { windowRegisterViewModel.setEmail(it) },
+                    label = { Text("Correo electrónico", color = Color.DarkGray) },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(
+                            Color.DarkGray,
+                            shape = RoundedCornerShape(8.dp)
+                        ),
+                    textStyle = TextStyle(color = Color.DarkGray),
+                    singleLine = true
+                )
+                emailError?.let { error ->
+                    Text(
+                        text = error,
+                        color = Color.Red,
+                        style = MaterialTheme.typography.bodySmall,
+                        modifier = Modifier.padding(start = 16.dp, top = 4.dp)
+                    )
                 }
-            )
+            }
+            Spacer(modifier = Modifier.height(12.dp))
+            Column {
+                TextField(
+                    value = password,
+                    onValueChange = { windowRegisterViewModel.setPassword(it) },
+                    label = { Text("Contraseña", color = Color.DarkGray) },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(
+                            Color.DarkGray,
+                            shape = RoundedCornerShape(8.dp)
+                        ),
+                    textStyle = TextStyle(color = Color.DarkGray),
+                    visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+
+                    trailingIcon = {
+                        val image =
+                            if (passwordVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff
+
+                        IconButton(onClick = { windowRegisterViewModel.togglePasswordVisibility() }) {
+                            Icon(imageVector = image, contentDescription = null)
+                        }
+                    }
+
+                )
+                passwordError?.let { error ->
+                    Text(
+                        text = error,
+                        color = Color.Red,
+                        style = MaterialTheme.typography.bodySmall,
+                        modifier = Modifier.padding(start = 16.dp, top = 4.dp)
+                    )
+                }
+            }
 
             Spacer(modifier = Modifier.height(12.dp))
-
-            TextField(
-                value = name,
-                onValueChange = { windowRegisterViewModel.setName(it) },
-                label = { Text("Nombre", color = Color.DarkGray) },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(
-                        Color.DarkGray,
-                        shape = RoundedCornerShape(8.dp)
-                    ),
-                textStyle = TextStyle(color = Color.DarkGray),
-                singleLine = true
-            )
+            Column {
+                TextField(
+                    value = name,
+                    onValueChange = { windowRegisterViewModel.setName(it) },
+                    label = { Text("Nombre", color = Color.DarkGray) },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(
+                            Color.DarkGray,
+                            shape = RoundedCornerShape(8.dp)
+                        ),
+                    textStyle = TextStyle(color = Color.DarkGray),
+                    singleLine = true
+                )
+                nameError?.let { error ->
+                    Text(
+                        text = error,
+                        color = Color.Red,
+                        style = MaterialTheme.typography.bodySmall,
+                        modifier = Modifier.padding(start = 16.dp, top = 4.dp)
+                    )
+                }
+            }
 
             Spacer(modifier = Modifier.height(12.dp))
-
-            TextField(
-                value = surname,
-                onValueChange = { windowRegisterViewModel.setSurname(it) },
-                label = { Text("Apellido", color = Color.DarkGray) },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(
-                        Color.DarkGray,
-                        shape = RoundedCornerShape(8.dp)
-                    ),
-                textStyle = TextStyle(color = Color.DarkGray),
-                singleLine = true
-            )
+            Column {
+                TextField(
+                    value = surname,
+                    onValueChange = { windowRegisterViewModel.setSurname(it) },
+                    label = { Text("Apellido", color = Color.DarkGray) },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(
+                            Color.DarkGray,
+                            shape = RoundedCornerShape(8.dp)
+                        ),
+                    textStyle = TextStyle(color = Color.DarkGray),
+                    singleLine = true
+                )
+                surnameError?.let { error ->
+                    Text(
+                        text = error,
+                        color = Color.Red,
+                        style = MaterialTheme.typography.bodySmall,
+                        modifier = Modifier.padding(start = 16.dp, top = 4.dp)
+                    )
+                }
+            }
 
             Spacer(modifier = Modifier.height(12.dp))
 
             Button(
+                enabled = buttonEnabled,
                 onClick = { navController.navigate(Screen.Items.route) },
                 modifier = Modifier
                     .fillMaxWidth()
@@ -173,6 +223,7 @@ fun Register(
                 }
 
             }
+
             Spacer(modifier = Modifier.height(70.dp))
 
             Text(

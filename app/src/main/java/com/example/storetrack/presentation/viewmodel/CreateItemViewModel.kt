@@ -1,14 +1,19 @@
 package com.example.storetrack.presentation.viewmodel
 
+import androidx.compose.material3.SnackbarHostState
 import kotlinx.coroutines.flow.MutableStateFlow
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import androidx.navigation.NavController
 import com.example.storetrack.domain.model.Item
+import com.example.storetrack.domain.usecase.SaveItemUseCase
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.launch
 
-class CreateItemViewModel : ViewModel() {
+class CreateItemViewModel(val saveItemUseCase: SaveItemUseCase) : ViewModel() {
 
     private val _item = MutableStateFlow(
-        Item("0", "", "", 0, 0, null)
+        Item("0", "", "", 0, 0, "")
     )
 
     val item: StateFlow<Item> = _item
@@ -17,9 +22,8 @@ class CreateItemViewModel : ViewModel() {
     fun setName(name: String) {
         _item.value = _item.value.copy(name = name)
     }
-
-    fun setPhoto(photo: String) {
-        _item.value = _item.value.copy(photo = photo)
+    fun setPhoto(photoName: String) {
+        _item.value = _item.value.copy(photo = photoName)
     }
 
     fun setDescription(description: String) {
@@ -32,5 +36,15 @@ class CreateItemViewModel : ViewModel() {
 
     fun setPrice(price: Int) {
         _item.value = _item.value.copy(price = price)
+    }
+
+    fun save(navController: NavController, snackbarHostState: SnackbarHostState) {
+        viewModelScope.launch {
+            if (saveItemUseCase(item.value)) {
+                navController.popBackStack()
+            } else {
+                snackbarHostState.showSnackbar("Error al guarar el libro")
+            }
+        }
     }
 }

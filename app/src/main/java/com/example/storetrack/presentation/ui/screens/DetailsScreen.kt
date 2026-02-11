@@ -10,15 +10,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.storetrack.presentation.viewmodel.ItemsViewModel
+import org.koin.androidx.compose.koinViewModel
 
 @Composable
 fun DetailsScreen(
     navController: NavController,
     id: String?,
-    itemsViewModel: ItemsViewModel = viewModel()
+    itemsViewModel: ItemsViewModel = koinViewModel()
 ) {
     val items by itemsViewModel.items.collectAsState()
     val myItem = remember(id, items) {

@@ -10,26 +10,29 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.storetrack.presentation.viewmodel.CreateItemViewModel
+import org.koin.androidx.compose.koinViewModel
 
 
 @Composable
 fun WindowCreateItem(
     navController: NavController,
-    windowItemViewModel: CreateItemViewModel = viewModel()
+    windowItemViewModel: CreateItemViewModel = koinViewModel()
 ) {
     val item by windowItemViewModel.item.collectAsState()
+    val snackbarHostState = remember { SnackbarHostState() }
 
     Scaffold { innerPadding ->
         Column(
@@ -67,13 +70,25 @@ fun WindowCreateItem(
 
             TextField(
                 modifier = Modifier.fillMaxWidth(),
-                value = item.description,
+                value = item.price.toString(),
                 label = { Text("Precio", color = Color.DarkGray) },
                 onValueChange = {
-                    windowItemViewModel.setDescription(it)
+                    it.toIntOrNull()?.let { price ->
+                        windowItemViewModel.setPrice(price)
+                    }
                 }
             )
 
+            Spacer(modifier = Modifier.height(16.dp))
+
+            TextField(
+                modifier = Modifier.fillMaxWidth(),
+                value = item.photo ?: "",
+                label = { Text("Foto", color = Color.DarkGray) },
+                onValueChange = {
+                    windowItemViewModel.setPhoto(it)
+                }
+            )
             Spacer(modifier = Modifier.height(16.dp))
 
             Row(
@@ -87,13 +102,11 @@ fun WindowCreateItem(
                     Text("Cancelar")
                 }
                 Button(
-                    onClick = { navController.popBackStack() }
+                    onClick = { windowItemViewModel.save(navController, snackbarHostState) }
                 ) {
                     Text("Guardar")
                 }
             }
-
-
         }
     }
 }
