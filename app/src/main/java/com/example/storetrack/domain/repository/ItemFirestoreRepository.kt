@@ -2,7 +2,6 @@ package com.example.storetrack.domain.repository
 
 import com.example.storetrack.domain.model.Item
 import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.firestore.Query
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
@@ -15,7 +14,7 @@ class ItemFirestoreRepository(val firestore: FirebaseFirestore) {
     suspend fun getById(id: String): Item? {
         return try {
             val documentSnapshot = itemsCollection.document(id).get().await()
-            documentSnapshot.toObject(Item::class.java)
+            documentSnapshot.toObject(Item::class.java)?.copy(id = documentSnapshot.id)
         } catch (e: Exception) {
             e.printStackTrace()
             null
@@ -23,15 +22,31 @@ class ItemFirestoreRepository(val firestore: FirebaseFirestore) {
     }
 
     fun list(): Flow<List<Item>> {
-        return queryForList(
-            itemsCollection,
-            Item::class.java
-        )
+        return callbackFlow {
+            val listener = itemsCollection.addSnapshotListener { snapshots, error ->
+                if (error != null) {
+                    close(error)
+                    return@addSnapshotListener
+                }
+
+                val items = snapshots?.documents?.mapNotNull { doc ->
+                    doc.toObject(Item::class.java)?.copy(id = doc.id)
+                } ?: emptyList()
+
+                trySend(items)
+            }
+
+            awaitClose { listener.remove() }
+        }
     }
 
     suspend fun save(item: Item): Boolean {
         return try {
-            itemsCollection.add(item).await()
+            if (item.id.isEmpty() || item.id == "0") {
+                itemsCollection.add(item).await()
+            } else {
+                itemsCollection.document(item.id).set(item).await()
+            }
             true
         } catch (e: Exception) {
             e.printStackTrace()
@@ -46,45 +61,6 @@ class ItemFirestoreRepository(val firestore: FirebaseFirestore) {
         } catch (e: Exception) {
             e.printStackTrace()
             false
-        }
-    }
-
-    private fun <T> queryForList(query: Query, clazz: Class<T>): Flow<List<T>> {
-        return callbackFlow {
-
-            val listener = query
-                .addSnapshotListener { snapshots, error ->
-                    if (error != null) {
-                        close(error)
-                        return@addSnapshotListener
-                    }
-
-                    val items = snapshots?.documents?.mapNotNull { doc ->
-                        doc.toObject(clazz)
-
-                    } ?: emptyList()
-
-                    trySend(items)
-                }
-
-            awaitClose() { listener.remove() }
-        }
-    }
-
-    private fun <T> queryForSingle(query: Query, clazz: Class<T>): Flow<T?> {
-        return callbackFlow {
-            val listener = query
-                .addSnapshotListener { snapshots, error ->
-                    if (error != null) {
-                        close(error)
-                        return@addSnapshotListener
-                    }
-
-                    val item = snapshots?.documents?.firstOrNull()?.toObject(clazz)
-
-                    trySend(item)
-                }
-            awaitClose() { listener.remove() }
         }
     }
 }

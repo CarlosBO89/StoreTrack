@@ -18,6 +18,9 @@ class CreateItemViewModel(val saveItemUseCase: SaveItemUseCase) : ViewModel() {
 
     val item: StateFlow<Item> = _item
 
+    fun setItem(item: Item) {
+        _item.value = item
+    }
 
     fun setName(name: String) {
         _item.value = _item.value.copy(name = name)
@@ -43,7 +46,7 @@ class CreateItemViewModel(val saveItemUseCase: SaveItemUseCase) : ViewModel() {
             if (saveItemUseCase(item.value)) {
                 navController.popBackStack()
             } else {
-                snackbarHostState.showSnackbar("Error al guarar el libro")
+                snackbarHostState.showSnackbar("Error al guardar el item")
             }
         }
     }

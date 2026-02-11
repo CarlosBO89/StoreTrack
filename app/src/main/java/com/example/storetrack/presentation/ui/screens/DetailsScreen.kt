@@ -1,16 +1,19 @@
 package com.example.storetrack.presentation.ui.screens
 
-import androidx.compose.runtime.Composable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.example.storetrack.presentation.viewmodel.CreateItemViewModel
 import com.example.storetrack.presentation.viewmodel.ItemsViewModel
 import org.koin.androidx.compose.koinViewModel
 
@@ -18,57 +21,84 @@ import org.koin.androidx.compose.koinViewModel
 fun DetailsScreen(
     navController: NavController,
     id: String?,
-    itemsViewModel: ItemsViewModel = koinViewModel()
+    itemsViewModel: ItemsViewModel = koinViewModel(),
+    createItemViewModel: CreateItemViewModel = koinViewModel()
 ) {
     val items by itemsViewModel.items.collectAsState()
-    val myItem = remember(id, items) {
-        items.find { it.id == id }
+    val itemToEdit by createItemViewModel.item.collectAsState()
+    val snackbarHostState = remember { SnackbarHostState() }
+
+    LaunchedEffect(id, items) {
+        items.find { it.id == id }?.let {
+            createItemViewModel.setItem(it)
+        }
     }
-    Scaffold { innerPadding ->
+
+    Scaffold(
+        snackbarHost = { SnackbarHost(snackbarHostState) }
+    ) { innerPadding ->
         Column(
             Modifier
                 .padding(innerPadding)
                 .padding(24.dp)
         ) {
             Text(
-                text = "Details for Item : $id",
+                text = "Edit Item : $id",
                 style = MaterialTheme.typography.headlineMedium,
                 textDecoration = TextDecoration.Underline
             )
+            Spacer(modifier = Modifier.height(16.dp))
+
+            TextField(
+                modifier = Modifier.fillMaxWidth(),
+                label = { Text("Nombre", color = Color.DarkGray) },
+                value = itemToEdit.name,
+                onValueChange = { createItemViewModel.setName(it) }
+            )
             Spacer(modifier = Modifier.height(10.dp))
-            Text(
-                text = "Id : ${myItem?.id}",
-                fontSize = 24.sp
-            )
-            Spacer(modifier = Modifier.height(5.dp))
 
-            Text(
-                text = "Nombre : ${myItem?.name}",
-                fontSize = 24.sp
+            TextField(
+                modifier = Modifier.fillMaxWidth(),
+                label = { Text("Descripción", color = Color.DarkGray) },
+                value = itemToEdit.description,
+                onValueChange = { createItemViewModel.setDescription(it) }
             )
-            Spacer(modifier = Modifier.height(5.dp))
-            Text(
-                text = "Descripción : ${myItem?.description}",
-                fontSize = 24.sp
-            )
-            Spacer(modifier = Modifier.height(5.dp))
+            Spacer(modifier = Modifier.height(10.dp))
 
-            Text(
-                text = "Stock : ${myItem?.stock}",
-                fontSize = 24.sp
+            TextField(
+                modifier = Modifier.fillMaxWidth(),
+                label = { Text("Stock", color = Color.DarkGray) },
+                value = itemToEdit.stock.toString(),
+                onValueChange = { it.toIntOrNull()?.let { stock -> createItemViewModel.setStock(stock) } }
             )
-            Spacer(modifier = Modifier.height(5.dp))
+            Spacer(modifier = Modifier.height(10.dp))
 
-            Text(
-                text = "Url Imagen : ${myItem?.photo}",
-                fontSize = 24.sp
+            TextField(
+                modifier = Modifier.fillMaxWidth(),
+                label = { Text("Precio", color = Color.DarkGray) },
+                value = itemToEdit.price.toString(),
+                onValueChange = { it.toIntOrNull()?.let { price -> createItemViewModel.setPrice(price) } }
             )
-            Spacer(modifier = Modifier.height(5.dp))
+            Spacer(modifier = Modifier.height(10.dp))
 
-            Button(
-                onClick = { navController.popBackStack() }
+            TextField(
+                modifier = Modifier.fillMaxWidth(),
+                label = { Text("Url Imagen", color = Color.DarkGray) },
+                value = itemToEdit.photo ?: "",
+                onValueChange = { createItemViewModel.setPhoto(it) }
+            )
+            Spacer(modifier = Modifier.height(24.dp))
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceEvenly
             ) {
-                Text("Go Back")
+                Button(onClick = { navController.popBackStack() }) {
+                    Text("Cancel")
+                }
+                Button(onClick = { createItemViewModel.save(navController, snackbarHostState) }) {
+                    Text("Save Changes")
+                }
             }
         }
     }
