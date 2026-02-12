@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "949659044518",
+    "project_id": "storetrack-5a49a",
+    "storage_bucket": "storetrack-5a49a.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:949659044518:android:ed1c566b52029b25abc267",
+        "android_client_info": {
+          "package_name": "com.example.storetrack"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCbisTkgLiNll-pgsRjAyv1XiizcAWaZD8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
